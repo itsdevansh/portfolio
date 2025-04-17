@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Devansh Kumar - Blog</title>
+    <!-- Direct CDN links to ensure libraries load properly -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/github.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/highlight.min.js"></script>
+    <!-- Font Awesome with reliable CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        /* Reset and Base Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            background-color: #f4f7f6;
+            color: #333;
+            overflow-x: hidden; /* Prevent horizontal scroll */
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: auto;
+            padding: 0 20px;
+            overflow: hidden; /* Clear floats */
+        }
+
+        /* Utility Classes */
+        .text-primary {
+            color: #0056b3; /* A nice blue */
+        }
+
+        .highlight {
+            background-color: rgba(0, 86, 179, 0.1);
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .section {
+            padding: 60px 0;
+            opacity: 0; /* Initially hidden for animation */
+            transform: translateY(30px); /* Start slightly lower */
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+        }
+
+        .section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .section h2 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.5rem;
+            color: #333;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        .section h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background-color: #0056b3;
+        }
+
+        ul {
+            list-style: none;
+        }
+
+        a {
+            text-decoration: none;
+            color: #0056b3;
+            transition: color 0.3s ease;
+        }
+
+        a:hover {
+            color: #003d82;
+        }
+
+        /* Header/Navbar */
+        #main-nav {
+            background: #333;
+            color: #fff;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 10px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        #main-nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #main-nav .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #fff;
+        }
+
+        #main-nav ul {
+            display: flex;
+        }
+
+        #main-nav ul li {
+            padding: 0 15px;
+        }
+
+        #main-nav ul li a {
+            color: #fff;
+            text-transform: uppercase;
+            font-weight: bold;
+            padding-bottom: 5px;
+            position: relative;
+        }
+        
+        #main-nav ul li a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: #0056b3;
+            transition: width 0.3s ease;
+        }
+
+        #main-nav ul li a:hover::after {
+            width: 100%;
+        }
+        
+        /* Blog Section */
+        #blog-header {
+            background: linear-gradient(rgba(0, 86, 179, 0.7), rgba(0, 86, 179, 0.7)), url('https://via.placeholder.com/1500x800/ddeeff/0056b3?text=Blog') no-repeat center center/cover;
+            color: #fff;
+            height: 40vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding-top: 60px; /* Adjust for fixed navbar height */
+        }
+
+        #blog-header h1 {
+            font-size: 3.5rem;
+            margin-bottom: 15px;
+            animation: fadeInDown 1s ease-out;
+        }
+
+        #blog-header p {
+            font-size: 1.5rem;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Blog Cards */
+        .blog-container {
+            margin-top: 60px;
+            margin-bottom: 60px;
+        }
+
+        .blog-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .blog-card {
+            background: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+
+        .blog-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .blog-card-image {
+            height: 200px;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .blog-card-content {
+            padding: 20px;
+        }
+
+        .blog-card-title {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #0056b3;
+        }
+
+        .blog-card-date {
+            font-size: 0.9rem;
+            color: #777;
+            margin-bottom: 10px;
+        }
+
+        .blog-card-excerpt {
+            margin-bottom: 15px;
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .blog-card-tag {
+            display: inline-block;
+            background: #e7f0f7;
+            color: #0056b3;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+
+        /* Full Blog Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.7);
+        }
+
+        .modal-content {
+            background-color: #fff;
+            margin: 5% auto;
+            padding: 30px;
+            width: 80%;
+            max-width: 900px;
+            border-radius: 8px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .close-modal:hover {
+            color: #0056b3;
+        }
+
+        .blog-header-image {
+            width: 100%;
+            max-height: 400px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .blog-title {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            color: #0056b3;
+        }
+
+        .blog-meta {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .blog-date {
+            color: #777;
+        }
+
+        .blog-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .blog-content {
+            line-height: 1.8;
+        }
+
+        .blog-content h1, 
+        .blog-content h2, 
+        .blog-content h3 {
+            margin-top: 25px;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .blog-content p {
+            margin-bottom: 20px;
+        }
+
+        .blog-content ul, 
+        .blog-content ol {
+            margin-left: 20px;
+            margin-bottom: 20px;
+        }
+
+        .blog-content img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 20px auto;
+            border-radius: 5px;
+        }
+
+        .blog-content pre {
+            background: #f4f7f6;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        .blog-content code {
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        /* Footer */
+        #main-footer {
+            background: #333;
+            color: #fff;
+            text-align: center;
+            padding: 20px 0;
+            margin-top: 40px;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .empty-state h3 {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: #0056b3;
+        }
+        
+        .empty-state p {
+            margin-bottom: 30px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* Keyframe Animations */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Responsive Design */
+        @media(max-width: 768px) {
+            #blog-header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .blog-cards {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+            
+            .modal-content {
+                width: 90%;
+                padding: 20px;
+            }
+            
+            .blog-title {
+                font-size: 2rem;
+            }
+            
+            #main-nav .container {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            #main-nav ul {
+                margin-top: 10px;
+            }
+            
+            #main-nav ul li {
+                padding: 0 10px;
+            }
+        }
+
+        @media(max-width: 500px) {
+            #blog-header h1 {
+                font-size: 2rem;
+            }
+            
+            #blog-header p {
+                font-size: 1.2rem;
+            }
+            
+            .blog-cards {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                padding: 15px;
+            }
+            
+            .blog-title {
+                font-size: 1.8rem;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+    <nav id="main-nav">
+        <div class="container">
+            <div class="logo">Devansh Kumar</div>
+            <ul>
+                <li><a href="index.html#hero">Home</a></li>
+                <li><a href="index.html#about">About</a></li>
+                <li><a href="index.html#experience">Experience</a></li>
+                <li><a href="index.html#projects">Projects</a></li>
+                <li><a href="index.html#skills">Skills</a></li>
+                <li><a href="index.html#education">Education</a></li>
+                <li><a href="blog.html">Blog</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Blog Header -->
+    <header id="blog-header">
+        <h1>My Blog</h1>
+        <p>Thoughts, insights, and experiences in AI, machine learning, and software development</p>
+    </header>
+
+    <!-- Blog Posts Container -->
+    <section class="blog-container">
+        <div class="container">
+            <div id="blog-cards" class="blog-cards">
+                <!-- Blog cards will be dynamically inserted here -->
+            </div>
+            <!-- Empty state for when no blogs are available -->
+            <div id="empty-state" class="empty-state" style="display: none;">
+                <h3>No blog posts yet!</h3>
+                <p>Check back soon for my thoughts on AI, machine learning, and software development.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Blog Post Modal -->
+    <div id="blog-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div id="blog-full-content">
+                <!-- The full blog content will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer id="main-footer">
+        <div class="container">
+            <p>&copy; 2025 Devansh Kumar. Based in Ottawa, Ontario.</p>
+            <p>Icons by <a href="https://fontawesome.com/" target="_blank" style="color: #ccc;">Font Awesome</a>. Placeholder background by <a href="https://via.placeholder.com/" target="_blank" style="color: #ccc;">via.placeholder.com</a>.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Debug flag
+        const DEBUG = true;
+        
+        function log(message) {
+            if (DEBUG) {
+                console.log(`[BLOG] ${message}`);
+            }
+        }
+        
+        log('Script starting...');
+        
+        // Make sure marked is available globally
+        if (typeof marked === 'undefined') {
+            console.error('Marked library not loaded!');
+            // Attempt to load it if not available
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js';
+            script.onload = function() {
+                log('Marked library loaded dynamically');
+                initBlog();
+            };
+            document.head.appendChild(script);
+        } else {
+            log('Marked library already loaded');
+            initBlog();
+        }
+        
+        function initBlog() {
+            // Initialize marked.js with options
+            if (typeof marked !== 'undefined') {
+                marked.setOptions({
+                    breaks: true,
+                    gfm: true,
+                    headerIds: true,
+                    highlight: function(code, lang) {
+                        if (typeof hljs !== 'undefined' && lang && hljs.getLanguage(lang)) {
+                            try { 
+                                return hljs.highlight(code, { language: lang }).value; 
+                            } catch (e) { 
+                                console.error('Highlight error:', e); 
+                            }
+                        }
+                        return code;
+                    }
+                });
+                log('Marked initialized with options');
+            }
+
+            // Sample blog data
+            const blogs = [
+                {
+                    id: 1,
+                    title: "Prompt Engineering Techniques That Boosted My LLM Performance",
+                    date: "April 15, 2025",
+                    excerpt: "Learn how I used advanced prompt engineering techniques to improve LLM performance by 2x in a production environment.",
+                    image: "https://via.placeholder.com/800x400/ddeeff/0056b3?text=Prompt+Engineering",
+                    tags: ["LLM", "Prompt Engineering", "AI"],
+                    content: `# Prompt Engineering Techniques That Boosted My LLM Performance
+
+## Introduction
+
+During my time at Huawei Technologies, I had the opportunity to work on factory automation systems powered by Large Language Models (LLMs). One of our biggest challenges was optimizing these models for both accuracy and speed in a production environment.
+
+## The Challenge
+
+Our initial implementation suffered from several issues:
+- Responses were sometimes inaccurate or off-topic
+- Processing time was too slow for real-time applications
+- The system struggled with complex, multi-step reasoning tasks
+
+## Solution: Advanced Prompt Engineering
+
+After extensive experimentation, I found several prompt engineering techniques that dramatically improved performance:
+
+### 1. Chain of Thought (CoT) Prompting
+
+By explicitly asking the model to "think step by step," we improved reasoning by 45% on complex tasks.
+
+\`\`\`
+# Before
+Q: A factory has 8 assembly lines. Each line can produce 12 units per hour. If 3 lines are under maintenance, how many units can be produced in a 9-hour shift?
+
+# After
+Q: A factory has 8 assembly lines. Each line can produce 12 units per hour. If 3 lines are under maintenance, how many units can be produced in a 9-hour shift? Think through this step by step.
+\`\`\`
+
+### 2. Few-Shot Learning
+
+Including 2-3 examples in the prompt significantly improved task-specific accuracy:
+
+\`\`\`
+# Example prompt with few-shot learning
+The following are examples of properly classified manufacturing defects:
+
+Image: scratch on metal surface
+Classification: COSMETIC_DEFECT
+
+Image: misaligned component
+Classification: ASSEMBLY_ERROR
+
+Now classify this new defect:
+Image: uneven paint coating
+Classification:
+\`\`\`
+
+### 3. Self-Consistency
+
+Having the model generate multiple solutions and then select the most consistent one improved our accuracy by 18% on mathematical reasoning tasks.
+
+## Results
+
+After implementing these techniques:
+- Inference speed improved by 2x
+- Accuracy on complex tasks increased by 23%
+- User satisfaction ratings improved from 72% to 91%
+
+## Conclusion
+
+The right prompt engineering techniques can dramatically improve LLM performance without any model retraining or additional compute resources. In my next post, I'll dive deeper into system-level optimizations that further enhanced our factory automation platform.
+`
+                },
+                {
+                    id: 2,
+                    title: "Building Scalable ML Pipelines with ZenML and MLflow",
+                    date: "April 5, 2025",
+                    excerpt: "A comprehensive guide to creating production-ready ML pipelines that scale efficiently.",
+                    image: "https://via.placeholder.com/800x400/ddeeff/0056b3?text=ML+Pipelines",
+                    tags: ["Machine Learning", "MLOps", "ZenML", "MLflow"],
+                    content: `# Building Scalable ML Pipelines with ZenML and MLflow
+
+## Introduction
+
+In the StockPro MLFlow project, I built a scalable machine learning pipeline using ZenML and MLflow. This pipeline reduced workflow time by 30% and improved model performance significantly.
+
+## Why ML Pipelines Matter
+
+Traditional ML workflows often suffer from:
+- Inconsistent environments between development and production
+- Poor reproducibility of experiments
+- Difficult model versioning and tracking
+- Manual, error-prone deployment processes
+
+## The ZenML + MLflow Solution
+
+### ZenML for Pipeline Orchestration
+
+ZenML provided a clean framework for defining our pipeline steps:
+
+\`\`\`python
+@step
+def data_ingestion():
+    # Load historical stock data
+    return df
+
+@step 
+def feature_engineering(df):
+    # Create features for stock prediction
+    return X_train, X_test, y_train, y_test
+
+@step
+def model_training(X_train, y_train):
+    # Train LSTM model with TensorFlow
+    return model
+
+@pipeline
+def stock_prediction_pipeline():
+    # Define the workflow
+    df = data_ingestion()
+    X_train, X_test, y_train, y_test = feature_engineering(df)
+    model = model_training(X_train, y_train)
+    metrics = evaluate(model, X_test, y_test)
+    deploy_if_better(model, metrics)
+\`\`\`
+
+### MLflow for Experiment Tracking
+
+MLflow helped us track experiments and models:
+
+\`\`\`python
+with mlflow.start_run():
+    # Log parameters
+    mlflow.log_param("learning_rate", lr)
+    mlflow.log_param("epochs", epochs)
+    
+    # Train model
+    history = model.fit(X_train, y_train, epochs=epochs, 
+                       validation_data=(X_val, y_val))
+    
+    # Log metrics
+    mlflow.log_metric("val_accuracy", max(history.history['val_accuracy']))
+    
+    # Log model
+    mlflow.tensorflow.log_model(model, "model")
+\`\`\`
+
+## Results
+
+This approach delivered impressive results:
+- **30% reduction** in end-to-end workflow time
+- **85% prediction accuracy** for our LSTM models
+- Seamless versioning and rollback capabilities
+- Automated deployment to production
+
+## Best Practices Learned
+
+1. **Containerize everything**: Use Docker to ensure consistency
+2. **Parameterize pipelines**: Make hyperparameters configurable
+3. **Version data and models**: Track everything with MLflow
+4. **Implement continuous deployment**: Automatically deploy when models improve
+
+In my next post, I'll cover how we integrated this pipeline with Kubernetes for even greater scalability.
+`
+                }
+            ];
+
+            // DOM elements
+            const blogCardsContainer = document.getElementById('blog-cards');
+            const blogModal = document.getElementById('blog-modal');
+            const blogFullContent = document.getElementById('blog-full-content');
+            const closeModal = document.querySelector('.close-modal');
+            const emptyState = document.getElementById('empty-state');
+
+            log('DOM elements accessed');
+
+            // Display blog cards
+            function displayBlogs() {
+                if (blogs.length === 0) {
+                    emptyState.style.display = 'block';
+                    return;
+                }
+                
+                log(`Displaying ${blogs.length} blog cards`);
+                blogCardsContainer.innerHTML = ''; // Clear any existing cards
+                
+                blogs.forEach(blog => {
+                    const blogCard = document.createElement('div');
+                    blogCard.className = 'blog-card';
+                    blogCard.setAttribute('data-id', blog.id);
+                    
+                    blogCard.innerHTML = `
+                        <div class="blog-card-image" style="background-image: url('${blog.image}');"></div>
+                        <div class="blog-card-content">
+                            <h3 class="blog-card-title">${blog.title}</h3>
+                            <p class="blog-card-date">${blog.date}</p>
+                            <p class="blog-card-excerpt">${blog.excerpt}</p>
+                            <div class="blog-card-tags">
+                                ${blog.tags.map(tag => `<span class="blog-card-tag">${tag}</span>`).join('')}
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Direct inline function for better reliability
+                    blogCard.onclick = function() {
+                        log(`Card clicked: ${blog.id} - ${blog.title}`);
+                        openBlog(blog.id);
+                        return false; // Prevent event bubbling
+                    };
+                    
+                    blogCardsContainer.appendChild(blogCard);
+                    log(`Added card for: ${blog.title}`);
+                });
+            }
+
+            // Open blog in modal - simplified for reliability
+            function openBlog(id) {
+                log(`Opening blog ID: ${id}`);
+                
+                // Find the blog
+                const blog = blogs.find(b => b.id === id);
+                if (!blog) {
+                    log(`Error: Blog with ID ${id} not found`);
+                    return;
+                }
+                
+                try {
+                    // Very simple markdown parsing fallback if marked fails
+                    let contentHtml;
+                    if (typeof marked !== 'undefined') {
+                        log('Using marked library to parse markdown');
+                        contentHtml = marked.parse(blog.content);
+                    } else {
+                        log('Marked not available, using basic HTML conversion');
+                        // Basic fallback conversion
+                        contentHtml = blog.content
+                            .replace(/# (.*?)\n/g, '<h1>$1</h1>')
+                            .replace(/## (.*?)\n/g, '<h2>$1</h2>')
+                            .replace(/### (.*?)\n/g, '<h3>$1</h3>')
+                            .replace(/\n- (.*?)\n/g, '<ul><li>$1</li></ul>')
+                            .replace(/\n\n/g, '<br><br>');
+                    }
+                    
+                    // Create the content
+                    blogFullContent.innerHTML = `
+                        <img src="${blog.image}" alt="${blog.title}" class="blog-header-image">
+                        <h1 class="blog-title">${blog.title}</h1>
+                        <div class="blog-meta">
+                            <div class="blog-date">${blog.date}</div>
+                            <div class="blog-tags">
+                                ${blog.tags.map(tag => `<span class="blog-card-tag">${tag}</span>`).join('')}
+                            </div>
+                        </div>
+                        <div class="blog-content">${contentHtml}</div>
+                    `;
+                    
+                    // Show the modal with immediate display
+                    blogModal.style.display = 'block';
+                    document.body.style.overflow = 'hidden'; // Prevent scrolling
+                    log('Modal opened successfully');
+                    
+                    // Try to apply syntax highlighting if available
+                    if (typeof hljs !== 'undefined') {
+                        log('Applying syntax highlighting');
+                        document.querySelectorAll('.blog-content pre code').forEach(block => {
+                            hljs.highlightElement(block);
+                        });
+                    }
+                } catch (error) {
+                    log(`Error opening blog: ${error.message}`);
+                    alert('There was a problem opening the blog post. Please try again.');
+                }
+            }
+
+            // Close modal
+            function closeModalFunc() {
+                blogModal.style.display = 'none';
+                document.body.style.overflow = ''; // Restore scrolling
+                log('Modal closed');
+            }
+
+            // Event listeners
+            closeModal.onclick = closeModalFunc;
+            
+            // Close when clicking outside
+            window.onclick = function(e) {
+                if (e.target === blogModal) {
+                    closeModalFunc();
+                }
+            };
+            
+            // Close with Escape key
+            document.onkeydown = function(e) {
+                if (e.key === 'Escape' && blogModal.style.display === 'block') {
+                    closeModalFunc();
+                }
+            };
+
+            // Start displaying blogs
+            displayBlogs();
+            log('Blog initialization complete');
+        }
+    </script>
+
+</body>
+</html>
