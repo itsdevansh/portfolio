@@ -4,12 +4,82 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Devansh Kumar - Blog</title>
-    <!-- Direct CDN links to ensure libraries load properly -->
-    <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/github.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/highlight.min.js"></script>
-    <!-- Font Awesome with reliable CDN -->
+    <!-- Library load status tracking -->
+    <script>
+        // Track library loading status
+        window.libraryStatus = {
+            marked: false,
+            jsyaml: false,
+            hljs: false
+        };
+        
+        // Essential vs optional libraries
+        window.essentialLibraries = ['marked', 'jsyaml'];
+        window.optionalLibraries = ['hljs'];
+    </script>
+    <!-- Primary CDN links for libraries with onload handlers -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js" 
+        onload="window.libraryStatus.marked = true;" 
+        onerror="loadFallbackLibrary('marked')"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js" 
+        onload="window.libraryStatus.jsyaml = true;" 
+        onerror="loadFallbackLibrary('jsyaml')"></script>
+    <!-- Multiple attempts for highlight.js -->
+    <script src="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/highlight.min.js" 
+        onload="window.libraryStatus.hljs = true;" 
+        onerror="loadFallbackLibrary('hljs')"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/highlight.js@11.7.0/styles/github.min.css" 
+        onerror="document.head.appendChild(document.createElement('style')).textContent = 'pre code{background:#f6f8fa;padding:10px;border-radius:5px;display:block;overflow-x:auto;}';">
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- Fallback library loader -->
+    <script>
+        function loadFallbackLibrary(library) {
+            console.warn(`Primary CDN failed for ${library}, trying fallback...`);
+            const fallbackUrls = {
+                marked: [
+                    'https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js',
+                    'https://unpkg.com/marked@4.3.0/marked.min.js'
+                ],
+                jsyaml: [
+                    'https://cdnjs.cloudflare.com/ajax/libs/js-yaml/4.1.0/js-yaml.min.js',
+                    'https://unpkg.com/js-yaml@4.1.0/dist/js-yaml.min.js'
+                ],
+                hljs: [
+                    'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js',
+                    'https://unpkg.com/highlight.js@11.7.0/lib/highlight.js',
+                    'https://cdn.skypack.dev/highlight.js@11.7.0'
+                ]
+            };
+            
+            const urls = fallbackUrls[library] || [];
+            tryNextUrl(library, urls, 0);
+        }
+        
+        function tryNextUrl(library, urls, index) {
+            if (index >= urls.length) {
+                console.error(`All fallbacks failed for ${library}`);
+                
+                // If it's an optional library, we can continue anyway
+                if (window.optionalLibraries.includes(library)) {
+                    console.warn(`${library} is optional, continuing without it`);
+                }
+                return;
+            }
+            
+            const script = document.createElement('script');
+            script.src = urls[index];
+            script.onload = function() { 
+                window.libraryStatus[library] = true;
+                console.log(`Fallback load successful for ${library} using ${urls[index]}`);
+            };
+            script.onerror = function() { 
+                console.error(`Fallback ${index+1} failed for ${library}`);
+                tryNextUrl(library, urls, index + 1);
+            };
+            document.head.appendChild(script);
+        }
+    </script>
     <style>
         /* Reset and Base Styles */
         * {
@@ -415,14 +485,17 @@
             #main-nav .container {
                 flex-direction: column;
                 align-items: center;
+                padding-bottom: 10px; /* Add some space below nav items */
             }
             
             #main-nav ul {
-                margin-top: 10px;
+                margin-top: 15px; /* Increase space between logo and links */
+                flex-wrap: wrap; /* Allow nav items to wrap */
+                justify-content: center; /* Center wrapped items */
             }
             
             #main-nav ul li {
-                padding: 0 10px;
+                padding: 5px 10px; /* Adjust padding for smaller screens */
             }
         }
 
@@ -444,10 +517,81 @@
             }
             
             .blog-title {
-                font-size: 1.8rem;
+                font-size: 1.6rem; /* Slightly smaller title on very small screens */
             }
         }
 
+        /* Debug Panel Styles */
+        #debug-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 15px;
+            font-family: monospace;
+            max-height: 40vh;
+            overflow-y: auto;
+            z-index: 2000;
+            font-size: 14px;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        #debug-panel.visible {
+            transform: translateY(0);
+        }
+        
+        #debug-panel .log-entry {
+            margin: 5px 0;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+        
+        #debug-panel .log-entry.error {
+            color: #ff6b6b;
+        }
+        
+        #debug-panel .log-entry.warning {
+            color: #feca57;
+        }
+        
+        #debug-panel .log-entry.success {
+            color: #1dd1a1;
+        }
+        
+        #debug-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #0056b3;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 2001;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+        
+        .debug-actions {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #444;
+        }
+        
+        .debug-actions button {
+            background: #0056b3;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            margin-right: 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
@@ -497,6 +641,18 @@
         </div>
     </div>
 
+    <!-- Debug Panel -->
+    <div id="debug-panel">
+        <div class="debug-actions">
+            <button id="reload-blogs">Reload Blogs</button>
+            <button id="clear-logs">Clear Logs</button>
+            <button id="check-path">Check File Path</button>
+            <span>Status: <span id="debug-status">Initializing...</span></span>
+        </div>
+        <div id="debug-logs"></div>
+    </div>
+    <button id="debug-toggle">🐞</button>
+
     <!-- Footer -->
     <footer id="main-footer">
         <div class="container">
@@ -507,7 +663,12 @@
 
     <script>
         // Debug flag
-        const DEBUG = true;
+        const DEBUG = false;
+        // List of known blog post files - **MANUALLY UPDATE THIS LIST**
+        const blogFiles = [
+            'blog/project.md' 
+            // Add paths to other .md files here, e.g., 'blog/another-post.md'
+        ];
         
         function log(message) {
             if (DEBUG) {
@@ -517,209 +678,81 @@
         
         log('Script starting...');
         
-        // Make sure marked is available globally
-        if (typeof marked === 'undefined') {
-            console.error('Marked library not loaded!');
-            // Attempt to load it if not available
-            const script = document.createElement('script');
-            script.src = 'https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js';
-            script.onload = function() {
-                log('Marked library loaded dynamically');
+        // Global store for blog data
+        let blogsData = [];
+
+        // --- Initialize Blog --- 
+        // Check library loading status and initialize when ready
+        function checkLibrariesAndInitialize(retryCount = 0, maxRetries = 10) {
+            // Check if all essential libraries are loaded
+            const essentialLoaded = window.essentialLibraries.every(lib => window.libraryStatus[lib]);
+            
+            if (essentialLoaded) {
+                log('All essential libraries loaded, initializing blog...');
+                
+                // Check optional libraries
+                const optionalMissing = window.optionalLibraries.filter(lib => !window.libraryStatus[lib]);
+                if (optionalMissing.length > 0) {
+                    log(`Note: Optional libraries not available: ${optionalMissing.join(', ')}`);
+                }
+                
                 initBlog();
-            };
-            document.head.appendChild(script);
-        } else {
-            log('Marked library already loaded');
-            initBlog();
+                return;
+            }
+            
+            if (retryCount >= maxRetries) {
+                console.error("Failed to load essential libraries after multiple attempts.", window.libraryStatus);
+                const missingEssential = window.essentialLibraries.filter(lib => !window.libraryStatus[lib]);
+                
+                alert(`Could not load necessary components for the blog (${missingEssential.join(', ')}). Please check your internet connection and try refreshing the page.`);
+                return;
+            }
+            
+            log(`Waiting for libraries to load... (attempt ${retryCount + 1}/${maxRetries})`);
+            log(`Library status: Marked: ${window.libraryStatus.marked}, JS-YAML: ${window.libraryStatus.jsyaml}, Highlight.js: ${window.libraryStatus.hljs}`);
+            
+            // Retry after a short delay (increasing with each retry)
+            setTimeout(() => {
+                checkLibrariesAndInitialize(retryCount + 1, maxRetries);
+            }, 300 + (retryCount * 100)); // Progressive delay
         }
         
+        // Start the initialization process when DOM is ready
+        document.addEventListener('DOMContentLoaded', () => {
+            log('DOM Content Loaded, checking library status...');
+            // Give a small initial delay to ensure onload events have a chance to fire
+            setTimeout(() => checkLibrariesAndInitialize(), 100);
+        });
+
         function initBlog() {
-            // Initialize marked.js with options
-            if (typeof marked !== 'undefined') {
-                marked.setOptions({
-                    breaks: true,
-                    gfm: true,
-                    headerIds: true,
-                    highlight: function(code, lang) {
-                        if (typeof hljs !== 'undefined' && lang && hljs.getLanguage(lang)) {
-                            try { 
-                                return hljs.highlight(code, { language: lang }).value; 
-                            } catch (e) { 
-                                console.error('Highlight error:', e); 
-                            }
-                        }
-                        return code;
-                    }
-                });
-                log('Marked initialized with options');
+            log('Initializing blog...');
+            // Check if essential libraries are accessible in the current scope
+            if (typeof marked === 'undefined' || typeof jsyaml === 'undefined') {
+                console.error("Essential library objects not accessible in current scope despite successful loading.");
+                alert("Could not initialize blog components. Please try refreshing the page.");
+                return;
             }
+            log('Essential libraries confirmed loaded and accessible.');
 
-            // Sample blog data
-            const blogs = [
-                {
-                    id: 1,
-                    title: "Prompt Engineering Techniques That Boosted My LLM Performance",
-                    date: "April 15, 2025",
-                    excerpt: "Learn how I used advanced prompt engineering techniques to improve LLM performance by 2x in a production environment.",
-                    image: "https://via.placeholder.com/800x400/ddeeff/0056b3?text=Prompt+Engineering",
-                    tags: ["LLM", "Prompt Engineering", "AI"],
-                    content: `# Prompt Engineering Techniques That Boosted My LLM Performance
-
-## Introduction
-
-During my time at Huawei Technologies, I had the opportunity to work on factory automation systems powered by Large Language Models (LLMs). One of our biggest challenges was optimizing these models for both accuracy and speed in a production environment.
-
-## The Challenge
-
-Our initial implementation suffered from several issues:
-- Responses were sometimes inaccurate or off-topic
-- Processing time was too slow for real-time applications
-- The system struggled with complex, multi-step reasoning tasks
-
-## Solution: Advanced Prompt Engineering
-
-After extensive experimentation, I found several prompt engineering techniques that dramatically improved performance:
-
-### 1. Chain of Thought (CoT) Prompting
-
-By explicitly asking the model to "think step by step," we improved reasoning by 45% on complex tasks.
-
-\`\`\`
-# Before
-Q: A factory has 8 assembly lines. Each line can produce 12 units per hour. If 3 lines are under maintenance, how many units can be produced in a 9-hour shift?
-
-# After
-Q: A factory has 8 assembly lines. Each line can produce 12 units per hour. If 3 lines are under maintenance, how many units can be produced in a 9-hour shift? Think through this step by step.
-\`\`\`
-
-### 2. Few-Shot Learning
-
-Including 2-3 examples in the prompt significantly improved task-specific accuracy:
-
-\`\`\`
-# Example prompt with few-shot learning
-The following are examples of properly classified manufacturing defects:
-
-Image: scratch on metal surface
-Classification: COSMETIC_DEFECT
-
-Image: misaligned component
-Classification: ASSEMBLY_ERROR
-
-Now classify this new defect:
-Image: uneven paint coating
-Classification:
-\`\`\`
-
-### 3. Self-Consistency
-
-Having the model generate multiple solutions and then select the most consistent one improved our accuracy by 18% on mathematical reasoning tasks.
-
-## Results
-
-After implementing these techniques:
-- Inference speed improved by 2x
-- Accuracy on complex tasks increased by 23%
-- User satisfaction ratings improved from 72% to 91%
-
-## Conclusion
-
-The right prompt engineering techniques can dramatically improve LLM performance without any model retraining or additional compute resources. In my next post, I'll dive deeper into system-level optimizations that further enhanced our factory automation platform.
-`
-                },
-                {
-                    id: 2,
-                    title: "Building Scalable ML Pipelines with ZenML and MLflow",
-                    date: "April 5, 2025",
-                    excerpt: "A comprehensive guide to creating production-ready ML pipelines that scale efficiently.",
-                    image: "https://via.placeholder.com/800x400/ddeeff/0056b3?text=ML+Pipelines",
-                    tags: ["Machine Learning", "MLOps", "ZenML", "MLflow"],
-                    content: `# Building Scalable ML Pipelines with ZenML and MLflow
-
-## Introduction
-
-In the StockPro MLFlow project, I built a scalable machine learning pipeline using ZenML and MLflow. This pipeline reduced workflow time by 30% and improved model performance significantly.
-
-## Why ML Pipelines Matter
-
-Traditional ML workflows often suffer from:
-- Inconsistent environments between development and production
-- Poor reproducibility of experiments
-- Difficult model versioning and tracking
-- Manual, error-prone deployment processes
-
-## The ZenML + MLflow Solution
-
-### ZenML for Pipeline Orchestration
-
-ZenML provided a clean framework for defining our pipeline steps:
-
-\`\`\`python
-@step
-def data_ingestion():
-    # Load historical stock data
-    return df
-
-@step 
-def feature_engineering(df):
-    # Create features for stock prediction
-    return X_train, X_test, y_train, y_test
-
-@step
-def model_training(X_train, y_train):
-    # Train LSTM model with TensorFlow
-    return model
-
-@pipeline
-def stock_prediction_pipeline():
-    # Define the workflow
-    df = data_ingestion()
-    X_train, X_test, y_train, y_test = feature_engineering(df)
-    model = model_training(X_train, y_train)
-    metrics = evaluate(model, X_test, y_test)
-    deploy_if_better(model, metrics)
-\`\`\`
-
-### MLflow for Experiment Tracking
-
-MLflow helped us track experiments and models:
-
-\`\`\`python
-with mlflow.start_run():
-    # Log parameters
-    mlflow.log_param("learning_rate", lr)
-    mlflow.log_param("epochs", epochs)
-    
-    # Train model
-    history = model.fit(X_train, y_train, epochs=epochs, 
-                       validation_data=(X_val, y_val))
-    
-    # Log metrics
-    mlflow.log_metric("val_accuracy", max(history.history['val_accuracy']))
-    
-    # Log model
-    mlflow.tensorflow.log_model(model, "model")
-\`\`\`
-
-## Results
-
-This approach delivered impressive results:
-- **30% reduction** in end-to-end workflow time
-- **85% prediction accuracy** for our LSTM models
-- Seamless versioning and rollback capabilities
-- Automated deployment to production
-
-## Best Practices Learned
-
-1. **Containerize everything**: Use Docker to ensure consistency
-2. **Parameterize pipelines**: Make hyperparameters configurable
-3. **Version data and models**: Track everything with MLflow
-4. **Implement continuous deployment**: Automatically deploy when models improve
-
-In my next post, I'll cover how we integrated this pipeline with Kubernetes for even greater scalability.
-`
+            // Initialize marked.js with options
+            marked.setOptions({
+                breaks: true,
+                gfm: true,
+                headerIds: true,
+                highlight: function(code, lang) {
+                    // Only use hljs if it's available
+                    if (window.libraryStatus.hljs && typeof hljs !== 'undefined' && lang && hljs.getLanguage(lang)) {
+                        try {
+                            return hljs.highlight(code, { language: lang }).value;
+                        } catch (e) {
+                            console.error('Highlight error:', e);
+                        }
+                    }
+                    // Fall back to no highlighting
+                    return code;
                 }
-            ];
+            });
+            log('Marked initialized with options');
 
             // DOM elements
             const blogCardsContainer = document.getElementById('blog-cards');
@@ -727,23 +760,151 @@ In my next post, I'll cover how we integrated this pipeline with Kubernetes for 
             const blogFullContent = document.getElementById('blog-full-content');
             const closeModal = document.querySelector('.close-modal');
             const emptyState = document.getElementById('empty-state');
-
             log('DOM elements accessed');
 
-            // Display blog cards
-            function displayBlogs() {
-                if (blogs.length === 0) {
+            // --- Fetch and Parse Blog Posts ---
+            async function loadBlogs() {
+                log(`Attempting to load ${blogFiles.length} blog files.`);
+                
+                if (blogFiles.length === 0) {
+                    log('No blog files configured');
                     emptyState.style.display = 'block';
                     return;
                 }
                 
-                log(`Displaying ${blogs.length} blog cards`);
+                const fetchPromises = blogFiles.map(async (filePath) => {
+                    try {
+                        log(`Fetching ${filePath}...`);
+                        const response = await fetch(filePath, {
+                            cache: 'no-store', // Force fresh fetch
+                            headers: {
+                                'Accept': 'text/plain, text/markdown'
+                            }
+                        });
+                        
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status} for ${filePath}`);
+                        }
+                        
+                        const markdownContent = await response.text();
+                        log(`Fetched content for ${filePath} (${markdownContent.length} bytes)`);
+                        
+                        // Remove HTML comments if present
+                        const cleanedMarkdown = markdownContent.replace(/<!--[\s\S]*?-->/g, '');
+                        
+                        // Parse YAML front matter and content
+                        const { metadata, content } = parseFrontMatter(cleanedMarkdown);
+                        
+                        // Check for missing metadata but continue with fallbacks
+                        if (!metadata || Object.keys(metadata).length === 0) {
+                            log(`Warning: No metadata found in ${filePath}`);
+                        }
+                        
+                        // Extract title from content if missing
+                        let extractedTitle = '';
+                        if (!metadata?.title) {
+                            const titleMatch = content.match(/^#\s+(.+)$/m);
+                            if (titleMatch) {
+                                extractedTitle = titleMatch[1];
+                                log(`Extracted title from markdown: ${extractedTitle}`);
+                            }
+                        }
+
+                        // Store parsed data with fallbacks
+                        return {
+                            id: metadata?.id || filePath.replace(/[^a-z0-9]/gi, '-'),
+                            title: metadata?.title || extractedTitle || 'Untitled Post',
+                            date: metadata?.date || 'No date',
+                            excerpt: metadata?.excerpt || content.substring(0, 150).replace(/[#*_]/g, '') + '...', // Auto-generate excerpt if missing
+                            image: metadata?.image || 'https://via.placeholder.com/800x400/ddeeff/0056b3?text=Blog+Post', // Default image
+                            tags: metadata?.tags || [],
+                            content: content, // Store raw markdown content
+                            filePath: filePath // Keep track of the source file
+                        };
+                    } catch (error) {
+                        console.error(`Failed to load or parse blog post ${filePath}:`, error);
+                        return null; // Return null for failed fetches/parses
+                    }
+                });
+
+                try {
+                    const results = await Promise.all(fetchPromises);
+                    blogsData = results.filter(blog => blog !== null); // Filter out null results
+                    
+                    log(`Successfully loaded and parsed ${blogsData.length} blog posts.`);
+                    
+                    if (blogsData.length === 0) {
+                        log('No valid blog posts were found');
+                        emptyState.style.display = 'block';
+                        return;
+                    }
+                    
+                    // Sort blogs by date (newest first) - with try/catch to handle invalid dates
+                    try {
+                        blogsData.sort((a, b) => {
+                            try {
+                                return new Date(b.date) - new Date(a.date);
+                            } catch (e) {
+                                return 0; // Keep original order if date comparison fails
+                            }
+                        });
+                    } catch (e) {
+                        log(`Error sorting blogs by date: ${e.message}`);
+                    }
+
+                    displayBlogs(); // Display after loading
+                } catch (error) {
+                    console.error('Error loading blogs:', error);
+                    emptyState.style.display = 'block';
+                }
+            }
+
+            // --- Parse YAML Front Matter ---
+            function parseFrontMatter(markdown) {
+                try {
+                    const frontMatterRegex = /^---\s*\n([\s\S]*?)\n---\s*\n?([\s\S]*)$/;
+                    const match = markdown.match(frontMatterRegex);
+
+                    if (match && typeof jsyaml !== 'undefined') {
+                        try {
+                            const metadata = jsyaml.load(match[1]);
+                            const content = match[2] || '';
+                            log('Parsed front matter successfully.');
+                            return { metadata, content };
+                        } catch (e) {
+                            console.error('Error parsing YAML front matter:', e);
+                            // Fallback: return content without metadata
+                            return { metadata: {}, content: markdown };
+                        }
+                    }
+                    
+                    log('No YAML front matter found or incorrect format.');
+                    // No front matter found, return the whole text as content
+                    return { metadata: {}, content: markdown };
+                } catch (error) {
+                    console.error('Error in parseFrontMatter:', error);
+                    return { metadata: {}, content: markdown };
+                }
+            }
+
+
+            // Display blog cards (using blogsData)
+            function displayBlogs() {
+                if (blogsData.length === 0) {
+                    emptyState.style.display = 'block';
+                    blogCardsContainer.innerHTML = ''; // Ensure container is empty
+                    return;
+                } else {
+                     emptyState.style.display = 'none';
+                }
+                
+                log(`Displaying ${blogsData.length} blog cards`);
                 blogCardsContainer.innerHTML = ''; // Clear any existing cards
                 
-                blogs.forEach(blog => {
+                blogsData.forEach(blog => {
                     const blogCard = document.createElement('div');
                     blogCard.className = 'blog-card';
-                    blogCard.setAttribute('data-id', blog.id);
+                    blogCard.setAttribute('data-id', blog.id); 
                     
                     blogCard.innerHTML = `
                         <div class="blog-card-image" style="background-image: url('${blog.image}');"></div>
@@ -757,11 +918,10 @@ In my next post, I'll cover how we integrated this pipeline with Kubernetes for 
                         </div>
                     `;
                     
-                    // Direct inline function for better reliability
                     blogCard.onclick = function() {
                         log(`Card clicked: ${blog.id} - ${blog.title}`);
-                        openBlog(blog.id);
-                        return false; // Prevent event bubbling
+                        openBlog(blog.id); // Use the ID from metadata
+                        return false; 
                     };
                     
                     blogCardsContainer.appendChild(blogCard);
@@ -769,26 +929,24 @@ In my next post, I'll cover how we integrated this pipeline with Kubernetes for 
                 });
             }
 
-            // Open blog in modal - simplified for reliability
+            // Open blog in modal (using blogsData)
             function openBlog(id) {
                 log(`Opening blog ID: ${id}`);
                 
-                // Find the blog
-                const blog = blogs.find(b => b.id === id);
+                const blog = blogsData.find(b => b.id === id);
                 if (!blog) {
-                    log(`Error: Blog with ID ${id} not found`);
+                    log(`Error: Blog with ID ${id} not found in loaded data.`);
+                     alert('Blog post not found.');
                     return;
                 }
                 
                 try {
-                    // Very simple markdown parsing fallback if marked fails
                     let contentHtml;
                     if (typeof marked !== 'undefined') {
-                        log('Using marked library to parse markdown');
+                        log('Using marked library to parse stored markdown');
                         contentHtml = marked.parse(blog.content);
                     } else {
                         log('Marked not available, using basic HTML conversion');
-                        // Basic fallback conversion
                         contentHtml = blog.content
                             .replace(/# (.*?)\n/g, '<h1>$1</h1>')
                             .replace(/## (.*?)\n/g, '<h2>$1</h2>')
@@ -797,7 +955,6 @@ In my next post, I'll cover how we integrated this pipeline with Kubernetes for 
                             .replace(/\n\n/g, '<br><br>');
                     }
                     
-                    // Create the content
                     blogFullContent.innerHTML = `
                         <img src="${blog.image}" alt="${blog.title}" class="blog-header-image">
                         <h1 class="blog-title">${blog.title}</h1>
@@ -810,20 +967,27 @@ In my next post, I'll cover how we integrated this pipeline with Kubernetes for 
                         <div class="blog-content">${contentHtml}</div>
                     `;
                     
-                    // Show the modal with immediate display
                     blogModal.style.display = 'block';
-                    document.body.style.overflow = 'hidden'; // Prevent scrolling
+                    document.body.style.overflow = 'hidden'; 
                     log('Modal opened successfully');
                     
-                    // Try to apply syntax highlighting if available
-                    if (typeof hljs !== 'undefined') {
+                    // Only apply syntax highlighting if hljs is available
+                    if (window.libraryStatus.hljs && typeof hljs !== 'undefined') {
                         log('Applying syntax highlighting');
                         document.querySelectorAll('.blog-content pre code').forEach(block => {
-                            hljs.highlightElement(block);
+                            try {
+                                hljs.highlightElement(block);
+                            } catch(e) {
+                                console.error("Highlighting error on block:", block, e);
+                            }
                         });
+                    } else {
+                         log('Skipping syntax highlighting (hljs not available)');
                     }
+
                 } catch (error) {
                     log(`Error opening blog: ${error.message}`);
+                    console.error(error); 
                     alert('There was a problem opening the blog post. Please try again.');
                 }
             }
@@ -835,26 +999,24 @@ In my next post, I'll cover how we integrated this pipeline with Kubernetes for 
                 log('Modal closed');
             }
 
+
             // Event listeners
             closeModal.onclick = closeModalFunc;
             
-            // Close when clicking outside
             window.onclick = function(e) {
                 if (e.target === blogModal) {
                     closeModalFunc();
                 }
             };
             
-            // Close with Escape key
             document.onkeydown = function(e) {
                 if (e.key === 'Escape' && blogModal.style.display === 'block') {
                     closeModalFunc();
                 }
             };
 
-            // Start displaying blogs
-            displayBlogs();
-            log('Blog initialization complete');
+            loadBlogs(); 
+            log('Blog initialization sequence started by calling loadBlogs()');
         }
     </script>
 
