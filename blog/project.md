@@ -3,7 +3,7 @@ id: 3
 title: "🎥 Contextual Video Question Answering System"
 date: "April 23, 2025"
 excerpt: "Enabling Natural Language Q&A over Videos using Multimodal AI. Built with BLIP, Whisper, FAISS, GPT-4, Docker, and AWS."
-image: "https://via.placeholder.com/800x400/ddeeff/0056b3?text=Video+QA+System"
+image: "images/blog1.png"
 tags: ["AI", "Multimodal", "Video QA", "LLM", "AWS", "Docker", "Python"]
 ---
 
